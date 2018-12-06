@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>收银台充值_聚合支付</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+
+</head>
+<body>
+<div style="display: none" id="alipay_wap"></div>
+<ul class="layui-nav" lay-filter="">
+    <li class="layui-nav-item"><a href="/index.html">API充值</a></li>
+    <li class="layui-nav-item layui-this"><a href="/cashier.html">收银台充值</a></li>
+</ul>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <form class="layui-form ">
+            <div class="layui-tab layui-tab-brief">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">订单数据</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">支付产品</label>
+                        <div class="layui-input-block">
+                            <input type="checkbox" name="productId" value="8002" title="微信扫码" checked="checked">
+                            <input type="checkbox" name="productId" value="8006" title="支付宝扫码" checked="">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">充值金额(分)</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="amount" name="amount" lay-verify="number" autocomplete="off" placeholder="请输入amount,单位元" class="layui-input" value="1">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">商品标题</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="subject" name="subject" lay-verify="required" autocomplete="off" placeholder="请输入subject" class="layui-input" value="XxPay支付测试">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">商品描述</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="body" name="body" lay-verify="required" autocomplete="off" placeholder="请输入body" class="layui-input" value="XxPay支付测试">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">回调地址</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="notifyUrl" name="notifyUrl" lay-verify="url" autocomplete="off" placeholder="请输入notifyUrl" class="layui-input" value="http://www.baidu.com">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block" style="padding-bottom: 20px;">
+                        <button type="button" class="layui-btn layui-btn-danger" lay-submit="" lay-filter="cashier">打开收银台</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="../layui/layui.js"></script>
+<script>
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element', 'form'], function(){
+        var form = layui.form
+        ,$ = layui.$
+        ,element = layui.element
+        ,layer = layui.layer ;
+
+        var host = window.location.host;
+        $("#notifyUrl").val("http://" + host + "/demo/notify.htm");
+
+        form.on('submit(cashier)', function(data) {
+            var productId = '';
+            $('input[name="productId"]:checked').each(function(){
+                productId += "," + $(this).val();
+            });
+            if(productId == '') {
+                layer.alert("请选择支付产品",{title: '提示'});
+                return;
+            }
+            productId = productId.substring(1);
+            data.field.type = "cashier";
+            data.field.productId = productId;
+            //这里可以写ajax方法提交表单
+            $.ajax({
+                type: "POST",
+                url: '/demo/create',
+                data: data.field,
+                success: function(res){
+                    if(res.code == 0) {
+                        var payUrl = res.data.payUrl;
+                        window.location = payUrl;
+                    }else {
+                        layer.open({
+                            title: "下单失败",
+                            content: res.msg
+                        });
+                    }
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+        form.render();
+    });
+</script>
+
+</body>
+</html>

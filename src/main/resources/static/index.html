@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>API充值_聚合支付</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+
+</head>
+<body>
+<div style="display: none" id="formJump"></div>
+<ul class="layui-nav" lay-filter="">
+    <li class="layui-nav-item layui-this"><a href="/index.html">API充值</a></li>
+    <li class="layui-nav-item"><a href="/cashier.html">收银台充值</a></li>
+</ul>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <form class="layui-form ">
+            <div class="layui-tab layui-tab-brief">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">订单数据</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">支付产品</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="productId" value="8002" title="微信扫码" checked="checked">
+                            <input type="radio" name="productId" value="8006" title="支付宝扫码">
+                            <input type="radio" name="productId" value="8007" title="支付宝H5">
+                            <input type="radio" name="productId" value="8001" title="网关快捷">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">充值金额(分)</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="amount" name="amount" lay-verify="number" autocomplete="off" placeholder="请输入amount,单位元" class="layui-input" value="1">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">商品标题</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="subject" name="subject" lay-verify="required" autocomplete="off" placeholder="请输入subject" class="layui-input" value="XxPay支付测试">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">商品描述</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="body" name="body" lay-verify="required" autocomplete="off" placeholder="请输入body" class="layui-input" value="XxPay支付测试">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">回调地址</label>
+                        <div class="layui-input-block">
+                            <input type="text" id="notifyUrl" name="notifyUrl" lay-verify="url" autocomplete="off" placeholder="请输入notifyUrl" class="layui-input" value="http://www.baidu.com">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block" style="padding-bottom: 20px;">
+                        <button type="button" class="layui-btn layui-btn-danger" lay-submit="" lay-filter="recharge">立即充值</button>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <blockquote class="layui-elem-quote">由于调用的测试环境支付系统,可能会由于某些上游账号已过期或被改动,导致下单异常.如还想体验,请联系作者.</blockquote>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../layui/layui.js"></script>
+<script>
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element', 'form'], function(){
+        var form = layui.form
+        ,$ = layui.$
+        ,element = layui.element
+        ,layer = layui.layer ;
+        var host = window.location.host;
+        $("#notifyUrl").val("http://" + host + "/demo/notify.htm");
+        form.on('submit(recharge)', function(data) {
+            var productId = $("input[name='productId']:checked").val();;
+            data.field.type = "recharge";
+            //这里可以写ajax方法提交表单
+            $.ajax({
+                type: "POST",
+                url: '/demo/create',
+                data: data.field,
+                success: function(res){
+                    if(res.code == 0) {
+                        var data = res.data;
+                        if(productId == 8007 || productId == 8001) {
+                            var payUrl = data.payParams.payUrl;
+                            $('#formJump').html(payUrl);
+                        }else if(productId == 8002 || productId == 8006) {
+                            var codeImgUrl = data.payParams.codeImgUrl;
+                            layer.open({
+                                title: "扫描二维码支付",
+                                type: 1,
+                                anim: 1,
+                                content: "<img width='200' height='200' src='" +  codeImgUrl + "' />"
+                            });
+                        }
+                    }else {
+                        layer.open({
+                            title: "下单失败",
+                            content: res.msg
+                        });
+                    }
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+        form.render();
+    });
+</script>
+
+</body>
+</html>

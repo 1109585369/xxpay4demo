@@ -1,0 +1,16 @@
+server:
+  port: 8081
+  context-path: /
+
+spring:
+  profiles:
+     active: prod
+
+logging:
+  file: ./log/xxpay-demo.log
+
+config:
+  payUrl: http://192.168.1.223:3020/api/
+  mchId: 20000028
+  appId: a6c83d00554842fa885b0301bca7d580
+  privateKey: ANDKO8K9G5Z76HQNNS3MYAO1XIXDW4YVJEN9GLOLDZJHDU4Y8X6FNZHVIAZLALD7XZRBKAZMTUDBCUN9E4UNCCCFTSA6BEDS8QARSYUIJ84OIQYRPMLLGOEWQNNJVRMG
